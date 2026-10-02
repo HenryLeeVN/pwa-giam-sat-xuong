@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0b1120">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Giám Sát Sản Xuất - Xưởng Khung Thép</title>
+  
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- Chart.js qua CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-badge">SCADA</div>
+      <div>
+        <h1>GIÁM SÁT SẢN LƯỢNG MÁY DẬP</h1>
+        <p class="subtitle">Xưởng Cơ Khí Khung Thép Nội Thất</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div id="connection-status-pill" class="pill pill-connected">
+        <span class="pulsing-dot"></span>
+        <span id="connection-status-text">Đang kết nối</span>
+      </div>
+      <button id="btn-refresh" class="btn-refresh" title="Làm mới tức thì">↻</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Danh sách thẻ máy -->
+    <section>
+      <div class="section-title">TRẠNG THÁI MÁY THỜI GIAN THỰC</div>
+      <div id="machines-grid" class="machines-grid">
+        <!-- Render tự động bởi app.js -->
+      </div>
+    </section>
+
+    <!-- Biểu đồ sản lượng theo thời gian -->
+    <section class="chart-section">
+      <div class="chart-header">
+        <div class="section-title">TIẾN ĐỘ SẢN LƯỢNG TRONG NGÀY HÔM NAY</div>
+        <div class="chart-controls">
+          <label for="machine-select">Chọn máy:</label>
+          <select id="machine-select" class="custom-select">
+            <!-- Danh sách máy nạp từ app.js -->
+          </select>
+        </div>
+      </div>
+      <div class="chart-wrapper">
+        <canvas id="outputChart"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span>Chu kỳ làm mới: 5 giây/lần</span>
+    <span id="last-global-sync">Cập nhật: --:--:--</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
