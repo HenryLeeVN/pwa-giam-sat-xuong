@@ -3,8 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#F3F3F0">
-<title>Quy trình công nghệ — Ghế Gudhjem</title>
+<meta name="theme-color" content="#080d1a">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LTF IIoTs">
+<title>LTF IIoTs — Giám sát sản lượng</title>
 <style>
   :root{
     --bg:#F3F3F0;
@@ -33,7 +39,7 @@
     padding:20px 14px 60px;
   }
   .wrap{max-width:480px;margin:0 auto;}
-  header{margin-bottom:14px; display:flex; justify-content:space-between; align-items:flex-end;}
+  header{margin-bottom:14px; display:flex; justify-content:space-between; align-items:flex-end; gap:10px;}
   header .label{font-size:12px;color:var(--text-muted);}
   header h1{font-size:20px;font-weight:600;margin:2px 0 0;}
 
@@ -47,6 +53,8 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    flex: 0 0 auto;
+    white-space: nowrap;
   }
   .machine-status-badge.online { color: var(--success); border-color: rgba(22, 163, 74, 0.3); }
   .machine-status-badge.offline { color: var(--danger); border-color: rgba(220, 38, 38, 0.3); background: var(--danger-bg); }
@@ -95,8 +103,11 @@
     color:var(--text-secondary);
     font-weight:600;
     flex:0 0 auto;
+    overflow:hidden;
   }
   .avatar.product{width:44px;height:44px;font-size:15px;border-radius:10px;}
+  .avatar.worker{width:32px;height:32px;font-size:12px;border-radius:50%;}
+  .avatar img{width:100%;height:100%;object-fit:cover;}
 
   .product-head{display:flex; align-items:center; gap:10px; min-width:0;}
   .product-info{display:flex; flex-direction:column; min-width:0;}
@@ -113,12 +124,34 @@
     margin-left:8px;
   }
 
+  /* Cot so lieu dang bang: do rong co dinh, can le phai, font so ky thuat */
+  .num-col{
+    display:inline-block;
+    min-width:48px;
+    text-align:right;
+    font-family:var(--mono);
+    font-variant-numeric:tabular-nums;
+  }
+
+  .col-header{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    padding:0 14px 6px;
+    font-size:10px;
+    font-weight:700;
+    color:var(--text-muted);
+    text-transform:uppercase;
+    letter-spacing:.03em;
+  }
+  .col-header span{min-width:48px; text-align:right;}
+
   .metrics{display:flex; gap:18px; padding:0 14px 12px;}
   .metric .k{font-size:10px;color:var(--text-secondary);}
-  .metric .v{font-family:var(--mono); font-size:16px; font-weight:600; margin-top:2px;}
+  .metric .v{font-family:var(--mono); font-size:16px; font-weight:600; margin-top:2px; font-variant-numeric:tabular-nums;}
 
   .ct-left{display:flex; flex-direction:column; min-width:0;}
-  .ct-metrics{display:flex; gap:8px; font-family:var(--mono); font-size:12px; color:var(--text-secondary); flex-wrap:wrap; justify-content:flex-end;}
+  .ct-metrics{display:flex; gap:10px; color:var(--text-secondary); flex-wrap:wrap; justify-content:flex-end;}
   .child-list{padding:0 10px 10px 10px;}
 
   .step-row{
@@ -134,9 +167,10 @@
     cursor:pointer;
   }
   .step-row:hover{background:var(--accent-bg);}
-  .step-row .step-left{display:flex; align-items:center; gap:8px;}
+  .step-row .step-left{display:flex; align-items:center; gap:8px; min-width:0;}
   .step-row .step-name{font-size:13px;}
-  .step-row .step-metrics{display:flex; gap:10px; font-family:var(--mono); font-size:12px; color:var(--text-secondary);}
+  .step-row .step-machine{font-size:10px; color:var(--text-muted); display:block;}
+  .step-row .step-metrics{display:flex; gap:10px; color:var(--text-secondary);}
   .sx-value.live{color:var(--accent); font-weight:700;}
 
   .status{
@@ -175,7 +209,25 @@
     cursor:pointer;
   }
   .history-title{font-size:16px; font-weight:600; margin:0 0 2px;}
-  .history-sub{font-size:12px; color:var(--text-muted); margin:0 0 14px;}
+  .history-sub{font-size:12px; color:var(--text-muted); margin:0 0 10px;}
+
+  .machine-picker{
+    display:flex;
+    gap:6px;
+    margin-bottom:14px;
+    flex-wrap:wrap;
+  }
+  .machine-chip{
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--text-secondary);
+    font-size:12px;
+    padding:6px 12px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .machine-chip.active{background:var(--accent); border-color:var(--accent); color:#fff;}
+
   .history-table{
     width:100%;
     border-collapse:collapse;
@@ -189,6 +241,7 @@
     padding:8px 10px;
     text-align:left;
     border-bottom:1px solid var(--border);
+    vertical-align:middle;
   }
   .history-table th{
     font-size:11px;
@@ -196,8 +249,11 @@
     font-weight:600;
     background:var(--surface-2);
   }
-  .history-table td{font-family:var(--mono);}
+  .history-table td.num{font-family:var(--mono); text-align:right; font-variant-numeric:tabular-nums;}
   .history-table tr:last-child td{border-bottom:none;}
+  .worker-cell{display:flex; align-items:center; gap:8px;}
+  .worker-name{font-size:12px;}
+  .worker-name.unknown{color:var(--text-muted); font-style:italic;}
 
   .alert-banner {
     display: none;
@@ -218,35 +274,37 @@
 
   <header>
     <div>
-      <div class="label">Quy trình công nghệ — Tổ định hình</div>
-      <h1>Ghế Gudhjem</h1>
+      <div class="label">LTF IIoTs</div>
+      <h1>Quy trình công nghệ</h1>
     </div>
-    <div id="machine-pill" class="machine-status-badge">
-      <span id="machine-dot" class="status settled"></span>
-      <span id="machine-status-text">Đang kết nối...</span>
+    <div id="refresh-pill" class="machine-status-badge online">
+      <span id="refresh-dot" class="status live"></span>
+      <span id="refresh-text">Đang tải...</span>
     </div>
   </header>
 
   <div class="tabs">
     <button id="btn-live" class="tab-btn active" onclick="switchTab('live')">Trực tiếp</button>
-    <button id="btn-history" class="tab-btn" onclick="switchTab('history')">Lịch sử máy A</button>
+    <button id="btn-history" class="tab-btn" onclick="switchTab('history')">Lịch sử</button>
   </div>
 
   <div id="tab-live">
     <div class="legend">
-      <span><span class="status live" aria-hidden="true"></span>Máy A đang chạy</span>
-      <span><span class="status offline" aria-hidden="true"></span>Máy A mất tín hiệu</span>
-      <span><span class="status settled" aria-hidden="true"></span>Công đoạn chốt</span>
+      <span><span class="status live" aria-hidden="true"></span>Máy đang hoạt động</span>
+      <span><span class="status offline" aria-hidden="true"></span>Máy mất tín hiệu</span>
+      <span><span class="status settled" aria-hidden="true"></span>Chưa gắn máy</span>
     </div>
-    <div id="tree"></div>
+    <div class="col-header"><span>SX</span><span>SD</span><span>Tồn</span></div>
+    <div id="tree">Đang tải dữ liệu...</div>
   </div>
 
   <div id="tab-history" style="display:none;">
     <button class="back-btn" onclick="switchTab('live')">← Quay lại</button>
-    <h2 id="history-title" class="history-title">Lịch sử máy A</h2>
-    <p id="history-ma" class="history-sub">Các bản ghi mới nhất từ máy</p>
+    <h2 class="history-title">Lịch sử theo máy</h2>
+    <p class="history-sub">Chọn máy để xem các bản ghi gần nhất</p>
+    <div id="machine-picker" class="machine-picker"></div>
     <table class="history-table">
-      <thead><tr><th>Thời điểm</th><th>Mã máy</th><th>Tổng đếm</th></tr></thead>
+      <thead><tr><th>Thời điểm</th><th>Công nhân</th><th style="text-align:right;">Tổng đếm</th></tr></thead>
       <tbody id="history-tbody">
         <tr><td colspan="3" style="text-align:center;">Đang tải dữ liệu...</td></tr>
       </tbody>
@@ -263,66 +321,18 @@ const HEADERS = {
   "Authorization": "Bearer " + SUPABASE_KEY
 };
 
-const sanPhamData = { ten: "Ghế Gudhjem" };
+const OFFLINE_SECONDS = 30; // qua 30s khong co ban ghi moi = coi nhu mat tin hieu
 
-const chiTietData = [
-  {
-    ma: "CT01",
-    ten: "Chân trước",
-    congDoan: [
-      { ma: "xxx01", ten: "Cắt", daSanXuat: 950 },
-      { ma: "xxx02", ten: "Dập (Máy A)", machineId: "A", daSanXuat: 0, active: true },
-      { ma: "xxx03", ten: "Khoan lỗ", daSanXuat: 400 }
-    ]
-  },
-  {
-    ma: "CT02",
-    ten: "Tay vịn",
-    congDoan: [
-      { ma: "yyy01", ten: "Cắt", daSanXuat: 860 },
-      { ma: "yyy02", ten: "Uốn", daSanXuat: 845 },
-      { ma: "yyy03", ten: "Hàn", daSanXuat: 830 },
-      { ma: "yyy04", ten: "Đánh bóng", daSanXuat: 810 }
-    ]
-  }
-];
-
-let machineAOnline = false;
-
-// Hàm tự động phát hiện trường thời gian trong dòng dữ liệu
-function extractTime(row) {
-  const possibleKeys = ['created_at', 'thoi_gian', 'thoi_diem', 'timestamp', 'time', 'ngay_tao', 'ngay'];
-  for (const k of possibleKeys) {
-    if (row[k]) return new Date(row[k]);
-  }
-  for (const k in row) {
-    if (typeof row[k] === 'string' && !isNaN(Date.parse(row[k])) && row[k].length >= 10) {
-      return new Date(row[k]);
-    }
-  }
-  return null;
-}
-
-function tinhCongDoan(list) {
-  return list.map((cd, i) => {
-    const daSuDung = i + 1 < list.length ? list[i + 1].daSanXuat : 0;
-    return Object.assign({}, cd, { daSuDung: daSuDung, conTon: cd.daSanXuat - daSuDung });
-  });
-}
-
-function tinhChiTiet(ct) {
-  const congDoan = tinhCongDoan(ct.congDoan);
-  const cuoi = congDoan[congDoan.length - 1];
-  return Object.assign({}, ct, {
-    congDoan: congDoan,
-    daSanXuat: cuoi.daSanXuat,
-    daSuDung: 0,
-    conTon: cuoi.daSanXuat
-  });
-}
+let dsCongDoan = [];     // toan bo danh sach ma cong doan (ds_cong_doan_dinh_hinh)
+let cauHinhMay = [];     // cau_hinh_may: ma_may -> ma_cong_doan
+let duLieuMoiNhatTheoMay = {};   // { ma_may: { tong_dem, thoi_gian, ... } }
+let hieuChinhTheoMay = {};       // { ma_may: tong so dieu chinh }
+let suDungTheoCongDoan = {};     // { ma_cong_doan: tong so da su dung }
+let congNhanTheoUid = {};        // { uid_the: { ten_nhan_vien, anh_dai_dien } }
+let currentHistoryMachine = null;
 
 function fmt(n) {
-  return (n || 0).toLocaleString('vi-VN');
+  return Math.round(n || 0).toLocaleString('vi-VN');
 }
 
 function initials(name) {
@@ -331,160 +341,272 @@ function initials(name) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-function metricHtml(label, value) {
-  return '<div class="metric"><div class="k">' + label + '</div><div class="v">' + fmt(value) + '</div></div>';
+async function fetchJson(path) {
+  const res = await fetch(`${SUPABASE_URL}${path}`, { headers: HEADERS });
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`HTTP ${res.status} — ${path} — ${detail}`);
+  }
+  return res.json();
 }
 
-function stepRowHtml(cd, ctLabel) {
-  let statusClass = 'settled';
-  let sxClass = '';
-  
-  if (cd.active) {
-    statusClass = machineAOnline ? 'live' : 'offline';
-    sxClass = ' live';
+// === TAI TOAN BO DU LIEU CAN THIET ===
+async function loadAll() {
+  const banner = document.getElementById("alert-banner");
+  try {
+    const [congDoanRows, cauHinhRows, hieuChinhRows, suDungRows, congNhanRows] = await Promise.all([
+      fetchJson("/ds_cong_doan_dinh_hinh?select=*"),
+      fetchJson("/cau_hinh_may?select=*"),
+      fetchJson("/hieu_chinh_san_luong?select=ma_may,so_luong_dieu_chinh"),
+      fetchJson("/su_dung?select=ma_cong_doan,so_luong_su_dung"),
+      fetchJson("/the_cong_nhan?select=*"),
+    ]);
+
+    dsCongDoan = congDoanRows;
+    cauHinhMay = cauHinhRows;
+
+    hieuChinhTheoMay = {};
+    hieuChinhRows.forEach(r => {
+      hieuChinhTheoMay[r.ma_may] = (hieuChinhTheoMay[r.ma_may] || 0) + (Number(r.so_luong_dieu_chinh) || 0);
+    });
+
+    suDungTheoCongDoan = {};
+    suDungRows.forEach(r => {
+      suDungTheoCongDoan[r.ma_cong_doan] = (suDungTheoCongDoan[r.ma_cong_doan] || 0) + (Number(r.so_luong_su_dung) || 0);
+    });
+
+    congNhanTheoUid = {};
+    congNhanRows.forEach(r => { congNhanTheoUid[r.uid_the] = r; });
+
+    // Lay ban ghi moi nhat tu du_lieu_may cho tung ma may da duoc cau hinh
+    const maMayList = [...new Set(cauHinhMay.map(c => c.ma_may))];
+    const latestResults = await Promise.all(
+      maMayList.map(ma => fetchJson(`/du_lieu_may?ma_may=eq.${encodeURIComponent(ma)}&order=id.desc&limit=1`))
+    );
+    duLieuMoiNhatTheoMay = {};
+    maMayList.forEach((ma, i) => {
+      if (latestResults[i] && latestResults[i].length > 0) duLieuMoiNhatTheoMay[ma] = latestResults[i][0];
+    });
+
+    banner.style.display = "none";
+    renderTree();
+    updateRefreshStatus();
+
+    if (document.getElementById('tab-history').style.display !== 'none') {
+      renderMachinePicker();
+    }
+  } catch (err) {
+    banner.style.display = "block";
+    banner.innerHTML = "<b>Lỗi tải dữ liệu:</b> " + err.message;
+  }
+}
+
+function tinhCongDoanRow(row) {
+  const maCongDoan = row["Mã công đoạn"];
+  const config = cauHinhMay.find(c => c.ma_cong_doan === maCongDoan);
+
+  let sx = 0, active = false, maMay = null, online = false, trangThaiText = "";
+
+  if (config) {
+    active = true;
+    maMay = config.ma_may;
+    const heSo = Number(config.so_luong_tren_lan) || 1;
+    const latest = duLieuMoiNhatTheoMay[maMay];
+    const demGoc = latest ? (Number(latest.tong_dem) || 0) : 0;
+    const dieuChinh = hieuChinhTheoMay[maMay] || 0;
+    sx = (demGoc + dieuChinh) * heSo;
+
+    if (latest && latest.thoi_gian) {
+      const diffSec = Math.floor((Date.now() - new Date(latest.thoi_gian).getTime()) / 1000);
+      online = diffSec <= OFFLINE_SECONDS;
+      trangThaiText = diffSec < 60 ? `${diffSec}s trước` : `${Math.floor(diffSec/60)}p trước`;
+    } else {
+      trangThaiText = "Chưa có dữ liệu";
+    }
   }
 
+  const sd = suDungTheoCongDoan[maCongDoan] || 0;
+  const ton = sx - sd;
+
+  return { row, sx, sd, ton, active, maMay, online, trangThaiText };
+}
+
+function stepRowHtml(info) {
+  const row = info.row;
+  let statusClass = 'settled';
+  let sxClass = '';
+  if (info.active) {
+    statusClass = info.online ? 'live' : 'offline';
+    sxClass = ' live';
+  }
+  const maLabel = row["Máy"] ? `<span class="step-machine">${row["Máy"]}${info.maMay ? ' · Máy ' + info.maMay : ''}</span>` : '';
+
   return (
-    '<div class="step-row" onclick="openHistory(\'' + cd.ten + '\',\'' + ctLabel + '\')">' +
+    '<div class="step-row">' +
       '<div class="step-left">' +
         '<span class="status ' + statusClass + '" aria-hidden="true"></span>' +
-        '<span class="step-name">' + cd.ten + '</span>' +
+        '<div><span class="step-name">' + (row["Công đoạn"] || '') + '</span>' + maLabel + '</div>' +
       '</div>' +
       '<div class="step-metrics">' +
-        '<span>SX <span class="sx-value' + sxClass + '">' + fmt(cd.daSanXuat) + '</span></span>' +
-        '<span>SD ' + fmt(cd.daSuDung) + '</span>' +
-        '<span>Tồn ' + fmt(cd.conTon) + '</span>' +
+        '<span class="num-col sx-value' + sxClass + '">' + fmt(info.sx) + '</span>' +
+        '<span class="num-col">' + fmt(info.sd) + '</span>' +
+        '<span class="num-col">' + fmt(info.ton) + '</span>' +
       '</div>' +
     '</div>'
   );
 }
 
-function chiTietHtml(ct, laNutThat) {
+function chiTietHtml(chiTiet, laNutThat) {
   const badge = laNutThat ? '<span class="badge">Điểm nghẽn</span>' : '';
-  const ctLabel = ct.ma + '_' + ct.ten;
+  const congDoanInfo = chiTiet.congDoan.map(tinhCongDoanRow);
+  const cuoi = congDoanInfo[congDoanInfo.length - 1];
+
   return (
     '<details open>' +
       '<summary>' +
         '<div class="ct-left">' +
-          '<div class="name">' + ctLabel + badge + '</div>' +
-          '<small class="subtitle">' + ct.congDoan.length + ' công đoạn</small>' +
+          '<div class="name">' + chiTiet.ten + badge + '</div>' +
+          '<small class="subtitle">' + congDoanInfo.length + ' công đoạn</small>' +
         '</div>' +
         '<div class="ct-metrics">' +
-          '<span>SX ' + fmt(ct.daSanXuat) + '</span>' +
-          '<span>SD ' + fmt(ct.daSuDung) + '</span>' +
-          '<span>Còn ' + fmt(ct.conTon) + '</span>' +
+          '<span class="num-col">' + fmt(cuoi.sx) + '</span>' +
+          '<span class="num-col">' + fmt(cuoi.sd) + '</span>' +
+          '<span class="num-col">' + fmt(cuoi.ton) + '</span>' +
         '</div>' +
         '<span class="chev">▸</span>' +
       '</summary>' +
       '<div class="child-list">' +
-        ct.congDoan.map(function (cd) { return stepRowHtml(cd, ctLabel); }).join('') +
+        congDoanInfo.map(stepRowHtml).join('') +
       '</div>' +
     '</details>'
   );
 }
 
-function render() {
-  const chiTietTinh = chiTietData.map(tinhChiTiet);
-  const daSanXuatSanPham = Math.min.apply(null, chiTietTinh.map(ct => ct.daSanXuat));
-  const nutThat = chiTietTinh.find(ct => ct.daSanXuat === daSanXuatSanPham);
+function groupTheoSanPham(rows) {
+  const theoSanPham = {};
+  rows.forEach(r => {
+    const maSp = r["Mã sản phẩm"] || '(chưa rõ)';
+    if (!theoSanPham[maSp]) theoSanPham[maSp] = { ten: r["Tên sản phẩm"] || maSp, chiTietMap: {} };
+    const maCt = r["Mã chi tiết"] || r["Tên Chi tiết"];
+    if (!theoSanPham[maSp].chiTietMap[maCt]) {
+      theoSanPham[maSp].chiTietMap[maCt] = { ten: r["Tên Chi tiết"] || maCt, congDoan: [] };
+    }
+    theoSanPham[maSp].chiTietMap[maCt].congDoan.push(r);
+  });
+  Object.values(theoSanPham).forEach(sp => {
+    Object.values(sp.chiTietMap).forEach(ct => {
+      ct.congDoan.sort((a, b) => String(a["STT Công đoạn"]).localeCompare(String(b["STT Công đoạn"])));
+    });
+  });
+  return theoSanPham;
+}
 
-  const html =
-    '<details open>' +
-      '<summary>' +
-        '<div class="product-head">' +
-          '<div class="avatar product">' + initials(sanPhamData.ten) + '</div>' +
-          '<div class="product-info">' +
-            '<div class="name">' + sanPhamData.ten + '</div>' +
-            '<small class="subtitle">Sản phẩm — đồng bộ đủ chi tiết</small>' +
+function renderTree() {
+  if (!dsCongDoan.length) {
+    document.getElementById('tree').innerHTML = '<div style="padding:14px;color:var(--text-muted);font-size:13px;">Chưa có dữ liệu danh sách công đoạn.</div>';
+    return;
+  }
+
+  const theoSanPham = groupTheoSanPham(dsCongDoan);
+  let html = '';
+
+  Object.entries(theoSanPham).forEach(([maSp, sp]) => {
+    const chiTietList = Object.values(sp.chiTietMap);
+    const chiTietTinh = chiTietList.map(ct => {
+      const congDoanInfo = ct.congDoan.map(tinhCongDoanRow);
+      const cuoi = congDoanInfo[congDoanInfo.length - 1];
+      return { ...ct, sxCuoi: cuoi.sx };
+    });
+    const sxSanPham = chiTietTinh.length ? Math.min(...chiTietTinh.map(ct => ct.sxCuoi)) : 0;
+    const nutThat = chiTietTinh.find(ct => ct.sxCuoi === sxSanPham);
+
+    html +=
+      '<details open>' +
+        '<summary>' +
+          '<div class="product-head">' +
+            '<div class="avatar product">' + initials(sp.ten) + '</div>' +
+            '<div class="product-info">' +
+              '<div class="name">' + sp.ten + '</div>' +
+              '<small class="subtitle">' + maSp + ' — ' + chiTietList.length + ' chi tiết</small>' +
+            '</div>' +
           '</div>' +
+          '<span class="chev">▸</span>' +
+        '</summary>' +
+        '<div class="metrics">' +
+          '<div class="metric"><div class="k">Đã đồng bộ</div><div class="v">' + fmt(sxSanPham) + '</div></div>' +
+          '<div class="metric"><div class="k">Đã Ráp hàn</div><div class="v">' + fmt(0) + '</div></div>' +
+          '<div class="metric"><div class="k">Còn lại</div><div class="v">' + fmt(sxSanPham) + '</div></div>' +
         '</div>' +
-        '<span class="chev">▸</span>' +
-      '</summary>' +
-      '<div class="metrics">' +
-        metricHtml('Đã đồng bộ', daSanXuatSanPham) +
-        metricHtml('Đã Ráp hàn', 0) +
-        metricHtml('Còn lại', daSanXuatSanPham) +
-      '</div>' +
-      '<div class="child-list">' +
-        chiTietTinh.map(ct => chiTietHtml(ct, ct === nutThat)).join('') +
-      '</div>' +
-    '</details>';
+        '<div class="child-list">' +
+          chiTietList.map(ct => chiTietHtml(ct, ct === nutThat)).join('') +
+        '</div>' +
+      '</details>';
+  });
 
   document.getElementById('tree').innerHTML = html;
 }
 
-// === TRUY VẤN MỚI NHẤT DỰA VÀO CỘT ID (KHÔNG CẦN CREATED_AT) ===
-async function fetchSupabaseLatest() {
-  const banner = document.getElementById("alert-banner");
-  try {
-    // Sắp xếp theo ID giảm dần để lấy dòng mới nhất
-    const url = `${SUPABASE_URL}/du_lieu_may?ma_may=eq.A&order=id.desc&limit=1`;
-    const res = await fetch(url, { headers: HEADERS });
-    
-    if (!res.ok) {
-      const errDetail = await res.text();
-      throw new Error(`HTTP ${res.status}: ${errDetail}`);
-    }
+function updateRefreshStatus() {
+  const maMayList = Object.keys(duLieuMoiNhatTheoMay);
+  const dot = document.getElementById('refresh-dot');
+  const text = document.getElementById('refresh-text');
+  const pill = document.getElementById('refresh-pill');
 
-    const data = await res.json();
-
-    if (!Array.isArray(data) || data.length === 0) {
-      banner.style.display = "block";
-      banner.innerHTML = "<b>Không tìm thấy dữ liệu:</b> Bảng <code>du_lieu_may</code> đang không có dòng nào có <code>ma_may = 'A'</code> hoặc đang bị chặn quyền đọc RLS.";
-      updateMachineStatus(false, "Chưa có dữ liệu");
-      return;
-    }
-
-    banner.style.display = "none";
-    const latestRow = data[0];
-    const tongDem = Number(latestRow.tong_dem) || 0;
-
-    // Tính thời gian từ dòng mới nhất
-    const timeObj = extractTime(latestRow);
-    let timeText = "Đang nhận tín hiệu";
-    if (timeObj) {
-      const diffSeconds = Math.floor((Date.now() - timeObj.getTime()) / 1000);
-      machineAOnline = diffSeconds <= 30;
-      timeText = diffSeconds < 60 ? `${diffSeconds}s trước` : `${Math.floor(diffSeconds / 60)}p trước`;
-    } else {
-      machineAOnline = true; // Có dữ liệu mới theo id
-    }
-
-    updateMachineStatus(machineAOnline, timeText);
-
-    // Cập nhật số vào công đoạn Dập
-    const ct01 = chiTietData.find(c => c.ma === "CT01");
-    if (ct01) {
-      const cdDap = ct01.congDoan.find(cd => cd.machineId === "A");
-      if (cdDap) cdDap.daSanXuat = tongDem;
-    }
-
-    render();
-
-  } catch (err) {
-    banner.style.display = "block";
-    banner.innerHTML = "<b>Lỗi kết nối:</b> " + err.message;
-    updateMachineStatus(false, "Mất kết nối");
+  if (maMayList.length === 0) {
+    pill.className = 'machine-status-badge offline';
+    dot.className = 'status offline';
+    text.textContent = 'Chưa có máy nào gắn dữ liệu';
+    return;
   }
+
+  let soMayOnline = 0;
+  maMayList.forEach(ma => {
+    const row = duLieuMoiNhatTheoMay[ma];
+    if (row && row.thoi_gian) {
+      const diffSec = Math.floor((Date.now() - new Date(row.thoi_gian).getTime()) / 1000);
+      if (diffSec <= OFFLINE_SECONDS) soMayOnline++;
+    }
+  });
+
+  const online = soMayOnline > 0;
+  pill.className = 'machine-status-badge ' + (online ? 'online' : 'offline');
+  dot.className = 'status ' + (online ? 'live' : 'offline');
+  text.textContent = `${soMayOnline}/${maMayList.length} máy đang hoạt động`;
 }
 
-function updateMachineStatus(isOnline, timeText) {
-  const pill = document.getElementById("machine-pill");
-  const dot = document.getElementById("machine-dot");
-  const txt = document.getElementById("machine-status-text");
+// === TAB LICH SU ===
+function renderMachinePicker() {
+  const maMayList = [...new Set(cauHinhMay.map(c => c.ma_may))];
+  const wrap = document.getElementById('machine-picker');
 
-  pill.className = "machine-status-badge " + (isOnline ? "online" : "offline");
-  dot.className = "status " + (isOnline ? "live" : "offline");
-  txt.textContent = isOnline ? `Máy A hoạt động (${timeText})` : `Máy A dừng (${timeText})`;
+  if (maMayList.length === 0) {
+    wrap.innerHTML = '<span style="font-size:12px;color:var(--text-muted);">Chưa có máy nào được cấu hình.</span>';
+    return;
+  }
+  if (!currentHistoryMachine || !maMayList.includes(currentHistoryMachine)) {
+    currentHistoryMachine = maMayList[0];
+  }
+  wrap.innerHTML = maMayList.map(ma =>
+    `<button class="machine-chip ${ma === currentHistoryMachine ? 'active' : ''}" onclick="chonMayLichSu('${ma}')">Máy ${ma}</button>`
+  ).join('');
+
+  loadHistoryTab();
+}
+
+function chonMayLichSu(ma) {
+  currentHistoryMachine = ma;
+  renderMachinePicker();
 }
 
 async function loadHistoryTab() {
   const tbody = document.getElementById("history-tbody");
+  if (!currentHistoryMachine) {
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Chưa chọn máy</td></tr>';
+    return;
+  }
   tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Đang tải...</td></tr>';
   try {
-    const url = `${SUPABASE_URL}/du_lieu_may?ma_may=eq.A&order=id.desc&limit=15`;
-    const res = await fetch(url, { headers: HEADERS });
-    const data = await res.json();
+    const data = await fetchJson(`/du_lieu_may?ma_may=eq.${encodeURIComponent(currentHistoryMachine)}&order=id.desc&limit=20`);
 
     if (!data || data.length === 0) {
       tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Chưa có dòng dữ liệu nào</td></tr>';
@@ -492,12 +614,18 @@ async function loadHistoryTab() {
     }
 
     tbody.innerHTML = data.map(row => {
-      const t = extractTime(row);
+      const t = row.thoi_gian ? new Date(row.thoi_gian) : null;
       const timeStr = t ? (t.toLocaleTimeString("vi-VN") + " " + t.toLocaleDateString("vi-VN")) : ("Bản ghi #" + row.id);
+      const cn = row.uid_the ? congNhanTheoUid[row.uid_the] : null;
+
+      const workerHtml = cn
+        ? `<div class="worker-cell"><div class="avatar worker">${cn.anh_dai_dien ? `<img src="${cn.anh_dai_dien}" alt="">` : initials(cn.ten_nhan_vien)}</div><span class="worker-name">${cn.ten_nhan_vien || cn.ma_nhan_vien || ''}</span></div>`
+        : `<div class="worker-cell"><div class="avatar worker">?</div><span class="worker-name unknown">Chưa xác định</span></div>`;
+
       return `<tr>
         <td>${timeStr}</td>
-        <td>${row.ma_may}</td>
-        <td style="font-weight:700; color:var(--accent);">${fmt(row.tong_dem)}</td>
+        <td>${workerHtml}</td>
+        <td class="num" style="font-weight:700; color:var(--accent);">${fmt(row.tong_dem)}</td>
       </tr>`;
     }).join('');
   } catch (err) {
@@ -510,16 +638,17 @@ function switchTab(tab) {
   document.getElementById('tab-history').style.display = tab === 'history' ? 'block' : 'none';
   document.getElementById('btn-live').classList.toggle('active', tab === 'live');
   document.getElementById('btn-history').classList.toggle('active', tab === 'history');
-  if (tab === 'history') loadHistoryTab();
+  if (tab === 'history') renderMachinePicker();
 }
 
-function openHistory(congDoanTen, ctLabel) {
-  switchTab('history');
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
 }
 
-render();
-fetchSupabaseLatest();
-setInterval(fetchSupabaseLatest, 5000);
+loadAll();
+setInterval(loadAll, 5000);
 </script>
 </body>
 </html>
