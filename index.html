@@ -97,7 +97,6 @@
     flex:0 0 auto;
   }
   .avatar.product{width:44px;height:44px;font-size:15px;border-radius:10px;}
-  .avatar.worker{width:26px;height:26px;font-size:10px;border-radius:6px;cursor:pointer;}
 
   .product-head{display:flex; align-items:center; gap:10px; min-width:0;}
   .product-info{display:flex; flex-direction:column; min-width:0;}
@@ -211,8 +210,6 @@
     margin-bottom: 14px;
     line-height: 1.5;
   }
-
-  .note{font-size:11px;color:var(--text-muted); margin-top:16px; line-height:1.6;}
 </style>
 </head>
 <body>
@@ -238,7 +235,7 @@
   <div id="tab-live">
     <div class="legend">
       <span><span class="status live" aria-hidden="true"></span>Máy A đang chạy</span>
-      <span><span class="status offline" aria-hidden="true"></span>Máy A mất tín hiệu (>30s)</span>
+      <span><span class="status offline" aria-hidden="true"></span>Máy A mất tín hiệu</span>
       <span><span class="status settled" aria-hidden="true"></span>Công đoạn chốt</span>
     </div>
     <div id="tree"></div>
@@ -291,6 +288,20 @@ const chiTietData = [
 ];
 
 let machineAOnline = false;
+
+// Hàm tự động phát hiện trường thời gian trong dòng dữ liệu
+function extractTime(row) {
+  const possibleKeys = ['created_at', 'thoi_gian', 'thoi_diem', 'timestamp', 'time', 'ngay_tao', 'ngay'];
+  for (const k of possibleKeys) {
+    if (row[k]) return new Date(row[k]);
+  }
+  for (const k in row) {
+    if (typeof row[k] === 'string' && !isNaN(Date.parse(row[k])) && row[k].length >= 10) {
+      return new Date(row[k]);
+    }
+  }
+  return null;
+}
 
 function tinhCongDoan(list) {
   return list.map((cd, i) => {
@@ -402,38 +413,46 @@ function render() {
   document.getElementById('tree').innerHTML = html;
 }
 
-// === TRUY VẤN SUPABASE VỚI CHUẨN POSTGREST GỐC ===
+// === TRUY VẤN MỚI NHẤT DỰA VÀO CỘT ID (KHÔNG CẦN CREATED_AT) ===
 async function fetchSupabaseLatest() {
   const banner = document.getElementById("alert-banner");
   try {
-    // Dùng đúng chuẩn: ma_may=eq.A
-    const url = `${SUPABASE_URL}/du_lieu_may?ma_may=eq.A&order=created_at.desc&limit=1`;
+    // Sắp xếp theo ID giảm dần để lấy dòng mới nhất
+    const url = `${SUPABASE_URL}/du_lieu_may?ma_may=eq.A&order=id.desc&limit=1`;
     const res = await fetch(url, { headers: HEADERS });
     
     if (!res.ok) {
       const errDetail = await res.text();
-      throw new Error(`Mã lỗi HTTP ${res.status}: ${errDetail}`);
+      throw new Error(`HTTP ${res.status}: ${errDetail}`);
     }
 
     const data = await res.json();
 
     if (!Array.isArray(data) || data.length === 0) {
       banner.style.display = "block";
-      banner.innerHTML = "<b>Chưa có dữ liệu Máy A (hoặc bị RLS chặn):</b><br>1. Vào Supabase -> Table Editor -> chọn <code>du_lieu_may</code> -> bấm <b>Disable RLS</b>.<br>2. Kiểm tra cột <code>ma_may</code> trong bảng có đúng chữ in hoa <b>'A'</b> không.";
-      updateMachineStatus(false, "Không có dữ liệu");
+      banner.innerHTML = "<b>Không tìm thấy dữ liệu:</b> Bảng <code>du_lieu_may</code> đang không có dòng nào có <code>ma_may = 'A'</code> hoặc đang bị chặn quyền đọc RLS.";
+      updateMachineStatus(false, "Chưa có dữ liệu");
       return;
     }
 
-    // Kết nối thành công
     banner.style.display = "none";
     const latestRow = data[0];
     const tongDem = Number(latestRow.tong_dem) || 0;
-    const createdAt = new Date(latestRow.created_at);
-    const diffSeconds = Math.floor((Date.now() - createdAt.getTime()) / 1000);
 
-    machineAOnline = diffSeconds <= 30;
-    updateMachineStatus(machineAOnline, diffSeconds < 60 ? `${diffSeconds}s trước` : `${Math.floor(diffSeconds / 60)}p trước`);
+    // Tính thời gian từ dòng mới nhất
+    const timeObj = extractTime(latestRow);
+    let timeText = "Đang nhận tín hiệu";
+    if (timeObj) {
+      const diffSeconds = Math.floor((Date.now() - timeObj.getTime()) / 1000);
+      machineAOnline = diffSeconds <= 30;
+      timeText = diffSeconds < 60 ? `${diffSeconds}s trước` : `${Math.floor(diffSeconds / 60)}p trước`;
+    } else {
+      machineAOnline = true; // Có dữ liệu mới theo id
+    }
 
+    updateMachineStatus(machineAOnline, timeText);
+
+    // Cập nhật số vào công đoạn Dập
     const ct01 = chiTietData.find(c => c.ma === "CT01");
     if (ct01) {
       const cdDap = ct01.congDoan.find(cd => cd.machineId === "A");
@@ -444,11 +463,7 @@ async function fetchSupabaseLatest() {
 
   } catch (err) {
     banner.style.display = "block";
-    if (err.message.includes("Failed to fetch")) {
-      banner.innerHTML = "<b>Không kết nối được server Supabase:</b><br>- Dự án trên Supabase có thể đang bị <b>PAUSED (Tạm dừng)</b> do lâu ngày không dùng. Hãy vào <i>supabase.com/dashboard</i> bấm <b>Restore/Resume</b> dự án.<br>- Hoặc kiểm tra kết nối mạng/Wifi.";
-    } else {
-      banner.innerHTML = "<b>Lỗi từ máy chủ:</b> " + err.message;
-    }
+    banner.innerHTML = "<b>Lỗi kết nối:</b> " + err.message;
     updateMachineStatus(false, "Mất kết nối");
   }
 }
@@ -460,14 +475,14 @@ function updateMachineStatus(isOnline, timeText) {
 
   pill.className = "machine-status-badge " + (isOnline ? "online" : "offline");
   dot.className = "status " + (isOnline ? "live" : "offline");
-  txt.textContent = isOnline ? `Máy A hoạt động (${timeText})` : `Máy A ngắt kết nối (${timeText})`;
+  txt.textContent = isOnline ? `Máy A hoạt động (${timeText})` : `Máy A dừng (${timeText})`;
 }
 
 async function loadHistoryTab() {
   const tbody = document.getElementById("history-tbody");
   tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Đang tải...</td></tr>';
   try {
-    const url = `${SUPABASE_URL}/du_lieu_may?ma_may=eq.A&order=created_at.desc&limit=15`;
+    const url = `${SUPABASE_URL}/du_lieu_may?ma_may=eq.A&order=id.desc&limit=15`;
     const res = await fetch(url, { headers: HEADERS });
     const data = await res.json();
 
@@ -477,33 +492,5 @@ async function loadHistoryTab() {
     }
 
     tbody.innerHTML = data.map(row => {
-      const d = new Date(row.created_at);
-      return `<tr>
-        <td>${d.toLocaleTimeString("vi-VN")} ${d.toLocaleDateString("vi-VN")}</td>
-        <td>${row.ma_may}</td>
-        <td style="font-weight:700; color:var(--accent);">${fmt(row.tong_dem)}</td>
-      </tr>`;
-    }).join('');
-  } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="3" style="color:red; text-align:center;">Không thể tải lịch sử</td></tr>';
-  }
-}
-
-function switchTab(tab) {
-  document.getElementById('tab-live').style.display = tab === 'live' ? 'block' : 'none';
-  document.getElementById('tab-history').style.display = tab === 'history' ? 'block' : 'none';
-  document.getElementById('btn-live').classList.toggle('active', tab === 'live');
-  document.getElementById('btn-history').classList.toggle('active', tab === 'history');
-  if (tab === 'history') loadHistoryTab();
-}
-
-function openHistory(congDoanTen, ctLabel) {
-  switchTab('history');
-}
-
-render();
-fetchSupabaseLatest();
-setInterval(fetchSupabaseLatest, 5000);
-</script>
-</body>
-</html>
+      const t = extractTime(row);
+      const timeStr = t ? (t.toLocaleTimeString("vi-VN") + " " + t.toLocaleDateString("vi-VN")) : ("Bản g
