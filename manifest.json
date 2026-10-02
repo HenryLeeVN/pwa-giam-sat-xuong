@@ -1,7 +1,7 @@
 {
-  "name": "Giám Sát Sản Lượng Xưởng",
-  "short_name": "Sản Lượng",
-  "description": "Theo dõi sản lượng máy dập cơ khí thời gian thực",
+  "name": "LTF IIoTs",
+  "short_name": "LTF IIoTs",
+  "description": "LTF IIoTs — Theo dõi sản lượng sản xuất thời gian thực, nhiều máy nhiều công đoạn",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0b1329",
