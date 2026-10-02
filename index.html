@@ -493,4 +493,33 @@ async function loadHistoryTab() {
 
     tbody.innerHTML = data.map(row => {
       const t = extractTime(row);
-      const timeStr = t ? (t.toLocaleTimeString("vi-VN") + " " + t.toLocaleDateString("vi-VN")) : ("Bản g
+      const timeStr = t ? (t.toLocaleTimeString("vi-VN") + " " + t.toLocaleDateString("vi-VN")) : ("Bản ghi #" + row.id);
+      return `<tr>
+        <td>${timeStr}</td>
+        <td>${row.ma_may}</td>
+        <td style="font-weight:700; color:var(--accent);">${fmt(row.tong_dem)}</td>
+      </tr>`;
+    }).join('');
+  } catch (err) {
+    tbody.innerHTML = '<tr><td colspan="3" style="color:red; text-align:center;">Không thể tải lịch sử</td></tr>';
+  }
+}
+
+function switchTab(tab) {
+  document.getElementById('tab-live').style.display = tab === 'live' ? 'block' : 'none';
+  document.getElementById('tab-history').style.display = tab === 'history' ? 'block' : 'none';
+  document.getElementById('btn-live').classList.toggle('active', tab === 'live');
+  document.getElementById('btn-history').classList.toggle('active', tab === 'history');
+  if (tab === 'history') loadHistoryTab();
+}
+
+function openHistory(congDoanTen, ctLabel) {
+  switchTab('history');
+}
+
+render();
+fetchSupabaseLatest();
+setInterval(fetchSupabaseLatest, 5000);
+</script>
+</body>
+</html>
