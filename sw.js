@@ -1,11 +1,10 @@
-const CACHE_NAME = "scada-metal-v1";
+const CACHE_NAME = "ltf-iiots-v2";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
-  "./styles.css",
-  "./app.js",
   "./manifest.json",
-  "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
+  "./icon-192.png",
+  "./icon-512.png"
 ];
 
 // Cài đặt và cache các file tĩnh
