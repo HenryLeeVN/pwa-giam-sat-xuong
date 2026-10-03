@@ -39,9 +39,13 @@
     padding:20px 14px 60px;
   }
   .wrap{max-width:480px;margin:0 auto;}
+  @media (min-width:700px){ .wrap{max-width:760px;} }
+  @media (min-width:1000px){ .wrap{max-width:1180px;} }
+
   header{margin-bottom:14px; display:flex; justify-content:space-between; align-items:flex-end; gap:10px;}
   header .label{font-size:12px;color:var(--text-muted);}
   header h1{font-size:20px;font-weight:600;margin:2px 0 0;}
+  #clock{font-size:11px;color:var(--text-muted);margin-top:2px;font-family:var(--mono);}
 
   .machine-status-badge {
     font-size: 11px;
@@ -59,6 +63,62 @@
   .machine-status-badge.online { color: var(--success); border-color: rgba(22, 163, 74, 0.3); }
   .machine-status-badge.offline { color: var(--danger); border-color: rgba(220, 38, 38, 0.3); background: var(--danger-bg); }
 
+  /* === DAI KPI TONG QUAN === */
+  .kpi-strip{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(135px,1fr));
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .kpi-tile{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:12px 14px;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    min-width:0;
+  }
+  .kpi-tile .kpi-label{font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
+  .kpi-tile .kpi-value{font-family:var(--mono);font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text);line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .kpi-tile .kpi-value.text{font-family:var(--sans);font-size:15px;font-weight:600;white-space:normal;}
+  .kpi-tile .kpi-value.flash{animation:flashval .6s ease;}
+  @keyframes flashval{
+    0%{color:var(--accent);}
+    100%{color:var(--text);}
+  }
+
+  /* === KHU VUC BIEU DO === */
+  .chart-section{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(260px,1fr));
+    gap:12px;
+    margin-bottom:16px;
+  }
+  .chart-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:14px;
+    display:flex;
+    flex-direction:column;
+    min-height:230px;
+  }
+  .chart-card .chart-title{font-size:13px;font-weight:600;margin-bottom:8px;}
+  .chart-card .chart-body{position:relative;flex:1;min-height:170px;}
+  .chart-card.placeholder{
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    color:var(--text-muted);
+    border-style:dashed;
+    background:var(--surface-2);
+  }
+  .chart-card.placeholder .chart-title{margin-bottom:4px;color:var(--text-secondary);}
+  .chart-card.placeholder .ph-note{font-size:12px;max-width:220px;}
+  .chart-card.placeholder .ph-icon{font-size:24px;margin-bottom:6px;opacity:.5;}
+
   .tabs{display:flex; gap:6px; margin-bottom:14px; background:var(--surface-2); padding:4px; border-radius:10px; border:1px solid var(--border);}
   .tab-btn{
     flex:1;
@@ -72,6 +132,13 @@
     cursor:pointer;
   }
   .tab-btn.active{background:var(--surface); color:var(--text); box-shadow:0 1px 2px rgba(0,0,0,0.06);}
+
+  /* === TREE: grid nhieu cot tren man hinh rong === */
+  #tree{display:flex; flex-direction:column; gap:12px;}
+  #tree > details{margin-bottom:0;}
+  @media (min-width:700px){
+    #tree{display:grid; grid-template-columns:repeat(auto-fit, minmax(380px,1fr)); align-items:start;}
+  }
 
   details{
     border:1px solid var(--border);
@@ -276,12 +343,53 @@
     <div>
       <div class="label">LTF IIoTs</div>
       <h1>Quy trình công nghệ</h1>
+      <div id="clock"></div>
     </div>
     <div id="refresh-pill" class="machine-status-badge online">
       <span id="refresh-dot" class="status live"></span>
       <span id="refresh-text">Đang tải...</span>
     </div>
   </header>
+
+  <div id="kpi-strip" class="kpi-strip">
+    <div class="kpi-tile">
+      <div class="kpi-label">Tổng SX (đã đồng bộ)</div>
+      <div id="kpi-tongsx" class="kpi-value">0</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-label">Công đoạn hoạt động</div>
+      <div id="kpi-congdoan" class="kpi-value">0/0</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-label">Máy hoạt động</div>
+      <div id="kpi-may" class="kpi-value">0/0</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-label">Điểm nghẽn hiện tại</div>
+      <div id="kpi-nutthat" class="kpi-value text">—</div>
+    </div>
+  </div>
+
+  <div id="chart-section" class="chart-section">
+    <div class="chart-card">
+      <div class="chart-title">Phân bổ SX theo sản phẩm</div>
+      <div class="chart-body"><canvas id="chart-by-product"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">SX theo công đoạn đang chạy</div>
+      <div class="chart-body"><canvas id="chart-by-stage"></canvas></div>
+    </div>
+    <div class="chart-card placeholder">
+      <div class="ph-icon">⏱</div>
+      <div class="chart-title">Xu hướng sản lượng theo giờ</div>
+      <div class="ph-note">Chưa có dữ liệu — cần gộp lịch sử theo thời gian, sẽ bổ sung sau</div>
+    </div>
+    <div class="chart-card placeholder">
+      <div class="ph-icon">🎯</div>
+      <div class="chart-title">Hiệu suất so với định mức</div>
+      <div class="ph-note">Chưa có dữ liệu — cần theo dõi thời lượng ca sản xuất, sẽ bổ sung sau</div>
+    </div>
+  </div>
 
   <div class="tabs">
     <button id="btn-live" class="tab-btn active" onclick="switchTab('live')">Trực tiếp</button>
@@ -312,6 +420,7 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script>
 const SUPABASE_URL = "https://nhieidisubjhwarhowdx.supabase.co/rest/v1";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oaWVpZGlzdWJqaHdhcmhvd2R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA4ODM5ODksImV4cCI6MjEwNjQ1OTk4OX0.u1x9yPEX_jaIm-IUdrVtNwfvb4euEU6mbOP9AuAb3Go";
@@ -322,6 +431,7 @@ const HEADERS = {
 };
 
 const OFFLINE_SECONDS = 30; // qua 30s khong co ban ghi moi = coi nhu mat tin hieu
+const CHART_PALETTE = ['#2F5D82','#B5711F','#16a34a','#6B8F71','#9B6B9E','#C9A227','#4F7CAC','#A3524B'];
 
 let dsCongDoan = [];     // toan bo danh sach ma cong doan (ds_cong_doan_dinh_hinh)
 let cauHinhMay = [];     // cau_hinh_may: ma_may -> ma_cong_doan
@@ -330,6 +440,9 @@ let hieuChinhTheoMay = {};       // { ma_may: tong so dieu chinh }
 let suDungTheoCongDoan = {};     // { ma_cong_doan: tong so da su dung }
 let congNhanTheoUid = {};        // { uid_the: { ten_nhan_vien, anh_dai_dien } }
 let currentHistoryMachine = null;
+let prevKpiText = {};            // ghi nho gia tri KPI lan truoc de tao hieu ung "flash" khi doi
+let donutChart = null;
+let stageBarChart = null;
 
 function fmt(n) {
   return Math.round(n || 0).toLocaleString('vi-VN');
@@ -348,6 +461,25 @@ async function fetchJson(path) {
     throw new Error(`HTTP ${res.status} — ${path} — ${detail}`);
   }
   return res.json();
+}
+
+// === DONG HO HE THONG (gio trinh duyet, chi de hien thi) ===
+function updateClock() {
+  const el = document.getElementById('clock');
+  if (el) el.textContent = new Date().toLocaleString('vi-VN', { hour12: false });
+}
+
+// === HIEU UNG "FLASH" KHI GIA TRI KPI THAY DOI, CHO CAM GIAC TRUC TIEP ===
+function setKpiText(id, text) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (prevKpiText[id] !== undefined && prevKpiText[id] !== text) {
+    el.classList.remove('flash');
+    void el.offsetWidth; // reset animation
+    el.classList.add('flash');
+  }
+  el.textContent = text;
+  prevKpiText[id] = text;
 }
 
 // === TAI TOAN BO DU LIEU CAN THIET ===
@@ -389,7 +521,11 @@ async function loadAll() {
     });
 
     banner.style.display = "none";
-    renderTree();
+
+    const stats = buildStats();
+    renderKPI(stats);
+    renderCharts(stats);
+    renderTree(stats);
     updateRefreshStatus();
 
     if (document.getElementById('tab-history').style.display !== 'none') {
@@ -431,6 +567,139 @@ function tinhCongDoanRow(row) {
   return { row, sx, sd, ton, active, maMay, online, trangThaiText };
 }
 
+function groupTheoSanPham(rows) {
+  const theoSanPham = {};
+  rows.forEach(r => {
+    const maSp = r["Mã sản phẩm"] || '(chưa rõ)';
+    if (!theoSanPham[maSp]) theoSanPham[maSp] = { ten: r["Tên sản phẩm"] || maSp, chiTietMap: {} };
+    const maCt = r["Mã chi tiết"] || r["Tên Chi tiết"];
+    if (!theoSanPham[maSp].chiTietMap[maCt]) {
+      theoSanPham[maSp].chiTietMap[maCt] = { ten: r["Tên Chi tiết"] || maCt, congDoan: [] };
+    }
+    theoSanPham[maSp].chiTietMap[maCt].congDoan.push(r);
+  });
+  Object.values(theoSanPham).forEach(sp => {
+    Object.values(sp.chiTietMap).forEach(ct => {
+      ct.congDoan.sort((a, b) => String(a["STT Công đoạn"]).localeCompare(String(b["STT Công đoạn"])));
+    });
+  });
+  return theoSanPham;
+}
+
+// === TINH TOAN TAP TRUNG: 1 lan duy nhat cho ca KPI, bieu do va cay quy trinh ===
+function buildStats() {
+  const theoSanPham = groupTheoSanPham(dsCongDoan);
+  const products = [];
+  let tongSX = 0;
+  let soCongDoanCoMay = 0;
+  let soCongDoanOnline = 0;
+  const allChiTiet = [];
+
+  Object.entries(theoSanPham).forEach(([maSp, sp]) => {
+    const chiTietList = Object.values(sp.chiTietMap).map(ct => {
+      const congDoanInfo = ct.congDoan.map(tinhCongDoanRow);
+      congDoanInfo.forEach(info => {
+        if (info.active) {
+          soCongDoanCoMay++;
+          if (info.online) soCongDoanOnline++;
+        }
+      });
+      const cuoi = congDoanInfo[congDoanInfo.length - 1];
+      return { ten: ct.ten, congDoanInfo, sxCuoi: cuoi.sx };
+    });
+
+    const sxSanPham = chiTietList.length ? Math.min(...chiTietList.map(ct => ct.sxCuoi)) : 0;
+    const nutThat = chiTietList.find(ct => ct.sxCuoi === sxSanPham) || null;
+    tongSX += sxSanPham;
+    chiTietList.forEach(ct => allChiTiet.push({ ten: ct.ten, maSp, sx: ct.sxCuoi }));
+
+    products.push({
+      maSp,
+      ten: sp.ten,
+      sx: sxSanPham,
+      chiTietList,
+      nutThatTen: nutThat ? nutThat.ten : null
+    });
+  });
+
+  const bottleneck = allChiTiet.length
+    ? allChiTiet.reduce((min, c) => (c.sx < min.sx ? c : min), allChiTiet[0])
+    : null;
+
+  return { products, tongSX, soCongDoanCoMay, soCongDoanOnline, bottleneck };
+}
+
+// === DAI KPI ===
+function renderKPI(stats) {
+  setKpiText('kpi-tongsx', fmt(stats.tongSX));
+  setKpiText('kpi-congdoan', `${stats.soCongDoanOnline}/${stats.soCongDoanCoMay}`);
+  setKpiText('kpi-nutthat', stats.bottleneck ? stats.bottleneck.ten : '—');
+}
+
+// === BIEU DO (Chart.js) — chi dung du lieu da tinh san, khong goi them API ===
+function renderCharts(stats) {
+  if (typeof Chart === 'undefined') return; // CDN chua tai duoc thi bo qua, khong lam vo trang
+
+  // Bieu do 1: phan bo SX theo san pham (donut)
+  const spLabels = stats.products.map(p => p.ten);
+  const spData = stats.products.map(p => p.sx);
+  const donutCtx = document.getElementById('chart-by-product');
+  if (donutCtx) {
+    if (!donutChart) {
+      donutChart = new Chart(donutCtx, {
+        type: 'doughnut',
+        data: { labels: spLabels, datasets: [{ data: spData, backgroundColor: CHART_PALETTE, borderWidth: 0 }] },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '62%',
+          plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } }
+        }
+      });
+    } else {
+      donutChart.data.labels = spLabels;
+      donutChart.data.datasets[0].data = spData;
+      donutChart.update('none');
+    }
+  }
+
+  // Bieu do 2: SX theo tung cong doan dang co may gan (bar ngang)
+  const activeRows = [];
+  stats.products.forEach(p => p.chiTietList.forEach(ct => ct.congDoanInfo.forEach(info => {
+    if (info.active) {
+      activeRows.push({
+        label: (info.row["Công đoạn"] || '').trim() + ' · Máy ' + info.maMay,
+        value: info.sx
+      });
+    }
+  })));
+  const barCtx = document.getElementById('chart-by-stage');
+  if (barCtx) {
+    const barLabels = activeRows.map(r => r.label);
+    const barData = activeRows.map(r => r.value);
+    if (!stageBarChart) {
+      stageBarChart = new Chart(barCtx, {
+        type: 'bar',
+        data: { labels: barLabels, datasets: [{ data: barData, backgroundColor: '#2F5D82', borderRadius: 6, maxBarThickness: 32 }] },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { beginAtZero: true, ticks: { font: { size: 10 } } },
+            y: { ticks: { font: { size: 11 } } }
+          }
+        }
+      });
+    } else {
+      stageBarChart.data.labels = barLabels;
+      stageBarChart.data.datasets[0].data = barData;
+      stageBarChart.update('none');
+    }
+  }
+}
+
 function stepRowHtml(info) {
   const row = info.row;
   let statusClass = 'settled';
@@ -456,16 +725,16 @@ function stepRowHtml(info) {
   );
 }
 
-function chiTietHtml(chiTiet, laNutThat) {
+function chiTietHtml(ct, laNutThat) {
   const badge = laNutThat ? '<span class="badge">Điểm nghẽn</span>' : '';
-  const congDoanInfo = chiTiet.congDoan.map(tinhCongDoanRow);
+  const congDoanInfo = ct.congDoanInfo;
   const cuoi = congDoanInfo[congDoanInfo.length - 1];
 
   return (
     '<details open>' +
       '<summary>' +
         '<div class="ct-left">' +
-          '<div class="name">' + chiTiet.ten + badge + '</div>' +
+          '<div class="name">' + ct.ten + badge + '</div>' +
           '<small class="subtitle">' + congDoanInfo.length + ' công đoạn</small>' +
         '</div>' +
         '<div class="ct-metrics">' +
@@ -473,7 +742,6 @@ function chiTietHtml(chiTiet, laNutThat) {
           '<span class="num-col">' + fmt(cuoi.sd) + '</span>' +
           '<span class="num-col">' + fmt(cuoi.ton) + '</span>' +
         '</div>' +
-        '<span class="chev">▸</span>' +
       '</summary>' +
       '<div class="child-list">' +
         congDoanInfo.map(stepRowHtml).join('') +
@@ -482,66 +750,34 @@ function chiTietHtml(chiTiet, laNutThat) {
   );
 }
 
-function groupTheoSanPham(rows) {
-  const theoSanPham = {};
-  rows.forEach(r => {
-    const maSp = r["Mã sản phẩm"] || '(chưa rõ)';
-    if (!theoSanPham[maSp]) theoSanPham[maSp] = { ten: r["Tên sản phẩm"] || maSp, chiTietMap: {} };
-    const maCt = r["Mã chi tiết"] || r["Tên Chi tiết"];
-    if (!theoSanPham[maSp].chiTietMap[maCt]) {
-      theoSanPham[maSp].chiTietMap[maCt] = { ten: r["Tên Chi tiết"] || maCt, congDoan: [] };
-    }
-    theoSanPham[maSp].chiTietMap[maCt].congDoan.push(r);
-  });
-  Object.values(theoSanPham).forEach(sp => {
-    Object.values(sp.chiTietMap).forEach(ct => {
-      ct.congDoan.sort((a, b) => String(a["STT Công đoạn"]).localeCompare(String(b["STT Công đoạn"])));
-    });
-  });
-  return theoSanPham;
-}
-
-function renderTree() {
-  if (!dsCongDoan.length) {
+function renderTree(stats) {
+  if (!stats.products.length) {
     document.getElementById('tree').innerHTML = '<div style="padding:14px;color:var(--text-muted);font-size:13px;">Chưa có dữ liệu danh sách công đoạn.</div>';
     return;
   }
 
-  const theoSanPham = groupTheoSanPham(dsCongDoan);
-  let html = '';
-
-  Object.entries(theoSanPham).forEach(([maSp, sp]) => {
-    const chiTietList = Object.values(sp.chiTietMap);
-    const chiTietTinh = chiTietList.map(ct => {
-      const congDoanInfo = ct.congDoan.map(tinhCongDoanRow);
-      const cuoi = congDoanInfo[congDoanInfo.length - 1];
-      return { ...ct, sxCuoi: cuoi.sx };
-    });
-    const sxSanPham = chiTietTinh.length ? Math.min(...chiTietTinh.map(ct => ct.sxCuoi)) : 0;
-    const nutThat = chiTietTinh.find(ct => ct.sxCuoi === sxSanPham);
-
-    html +=
-      '<details open>' +
-        '<summary>' +
-          '<div class="product-head">' +
-            '<div class="avatar product">' + initials(sp.ten) + '</div>' +
-            '<div class="product-info">' +
-              '<div class="name">' + sp.ten + '</div>' +
-              '<small class="subtitle">' + maSp + ' — ' + chiTietList.length + ' chi tiết</small>' +
-            '</div>' +
+  const html = stats.products.map(p => (
+    '<details open>' +
+      '<summary>' +
+        '<div class="product-head">' +
+          '<div class="avatar product">' + initials(p.ten) + '</div>' +
+          '<div class="product-info">' +
+            '<div class="name">' + p.ten + '</div>' +
+            '<small class="subtitle">' + p.maSp + ' — ' + p.chiTietList.length + ' chi tiết</small>' +
           '</div>' +
-          '<span class="chev">▸</span>' +
-        '</summary>' +
-        '<div class="metrics">' +
-          '<div class="metric"><div class="k">Đã đồng bộ</div><div class="v">' + fmt(sxSanPham) + '</div></div>' +
-          '<div class="metric"><div class="k">Đã Ráp hàn</div><div class="v">' + fmt(0) + '</div></div>' +
-          '<div class="metric"><div class="k">Còn lại</div><div class="v">' + fmt(sxSanPham) + '</div></div>' +
         '</div>' +
-        '<div class="child-list">' +
-          chiTietList.map(ct => chiTietHtml(ct, ct === nutThat)).join('') +
-        '</div>' +
-      '</details>';
-  });
+        '<span class="chev">▸</span>' +
+      '</summary>' +
+      '<div class="metrics">' +
+        '<div class="metric"><div class="k">Đã đồng bộ</div><div class="v">' + fmt(p.sx) + '</div></div>' +
+        '<div class="metric"><div class="k">Đã Ráp hàn</div><div class="v">' + fmt(0) + '</div></div>' +
+        '<div class="metric"><div class="k">Còn lại</div><div class="v">' + fmt(p.sx) + '</div></div>' +
+      '</div>' +
+      '<div class="child-list">' +
+        p.chiTietList.map(ct => chiTietHtml(ct, ct.ten === p.nutThatTen)).join('') +
+      '</div>' +
+    '</details>'
+  )).join('');
 
   document.getElementById('tree').innerHTML = html;
 }
@@ -552,13 +788,6 @@ function updateRefreshStatus() {
   const text = document.getElementById('refresh-text');
   const pill = document.getElementById('refresh-pill');
 
-  if (maMayList.length === 0) {
-    pill.className = 'machine-status-badge offline';
-    dot.className = 'status offline';
-    text.textContent = 'Chưa có máy nào gắn dữ liệu';
-    return;
-  }
-
   let soMayOnline = 0;
   maMayList.forEach(ma => {
     const row = duLieuMoiNhatTheoMay[ma];
@@ -568,10 +797,18 @@ function updateRefreshStatus() {
     }
   });
 
-  const online = soMayOnline > 0;
-  pill.className = 'machine-status-badge ' + (online ? 'online' : 'offline');
-  dot.className = 'status ' + (online ? 'live' : 'offline');
-  text.textContent = `${soMayOnline}/${maMayList.length} máy đang hoạt động`;
+  if (maMayList.length === 0) {
+    pill.className = 'machine-status-badge offline';
+    dot.className = 'status offline';
+    text.textContent = 'Chưa có máy nào gắn dữ liệu';
+  } else {
+    const online = soMayOnline > 0;
+    pill.className = 'machine-status-badge ' + (online ? 'online' : 'offline');
+    dot.className = 'status ' + (online ? 'live' : 'offline');
+    text.textContent = `${soMayOnline}/${maMayList.length} máy đang hoạt động`;
+  }
+
+  setKpiText('kpi-may', `${soMayOnline}/${maMayList.length}`);
 }
 
 // === TAB LICH SU ===
@@ -646,6 +883,9 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   });
 }
+
+updateClock();
+setInterval(updateClock, 1000);
 
 loadAll();
 setInterval(loadAll, 5000);
