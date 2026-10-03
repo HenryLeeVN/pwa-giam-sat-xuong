@@ -242,6 +242,7 @@
   .avatar.product{width:44px;height:44px;font-size:15px;border-radius:10px;}
   .avatar.worker{width:32px;height:32px;font-size:12px;border-radius:50%;}
   .avatar img{width:100%;height:100%;object-fit:cover;}
+  .avatar.product img{object-fit:contain;padding:3px;background:#fff;}
 
   .product-head{display:flex; align-items:center; gap:10px; min-width:0;}
   .product-info{display:flex; flex-direction:column; min-width:0;}
@@ -284,8 +285,8 @@
   .metric .k{font-size:10px;color:var(--text-secondary);}
   .metric .v{font-family:var(--mono); font-size:16px; font-weight:600; margin-top:2px; font-variant-numeric:tabular-nums;}
 
-  .ct-left{display:flex; flex-direction:column; min-width:0;}
-  .ct-metrics{display:flex; gap:10px; color:var(--text-secondary); flex-wrap:wrap; justify-content:flex-end;}
+  .ct-left{display:flex; flex-direction:column; min-width:0; flex:1 1 auto;}
+  .ct-metrics{display:flex; gap:10px; color:var(--text-secondary); flex-wrap:nowrap; justify-content:flex-end; flex:0 0 auto;}
   .child-list{padding:0 10px 10px 10px;}
 
   .step-row{
@@ -304,7 +305,7 @@
   .step-row .step-left{display:flex; align-items:center; gap:8px; min-width:0;}
   .step-row .step-name{font-size:13px;}
   .step-row .step-machine{font-size:10px; color:var(--text-muted); display:block;}
-  .step-row .step-metrics{display:flex; gap:10px; color:var(--text-secondary);}
+  .step-row .step-metrics{display:flex; gap:10px; color:var(--text-secondary); flex-wrap:nowrap; flex:0 0 auto; margin-left:auto;}
   .sx-value.live{color:var(--accent); font-weight:700;}
 
   .status{
@@ -324,7 +325,7 @@
   .status.offline{color:var(--danger);}
   .status.offline::before{content:"\25CF";}
   .status.settled{color:var(--text-muted);}
-  .status.settled::before{content:"\2713";}
+  .status.settled::before{content:"\25CB";}
 
   @keyframes pulse{
     0%,100%{opacity:1;}
@@ -399,6 +400,14 @@
     font-size: 12px;
     margin-bottom: 14px;
     line-height: 1.5;
+  }
+
+  /* === DIEN THOAI MAN HINH HEP: xep lai header de khoi bi lech/chen chu === */
+  @media (max-width:480px){
+    header{flex-direction:column; align-items:stretch; gap:8px;}
+    header .header-left{width:100%;}
+    #refresh-pill{align-self:flex-start;}
+    header h1{font-size:18px;}
   }
 </style>
 </head>
@@ -548,6 +557,15 @@ function initials(name) {
   const parts = (name || '').trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return '?';
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+// Anh minh hoa san pham: biet ten san pham -> tra ve <img>, khong biet thi dung chu viet tat
+function productAvatarHtml(ten) {
+  const t = (ten || '').toUpperCase();
+  if (t.includes('GUDHJEM')) {
+    return '<img src="./gudhjem-chair.png" alt="' + ten + '">';
+  }
+  return initials(ten);
 }
 
 async function fetchJson(path) {
@@ -841,7 +859,7 @@ function renderTree(stats) {
     '<details open>' +
       '<summary>' +
         '<div class="product-head">' +
-          '<div class="avatar product">' + initials(p.ten) + '</div>' +
+          '<div class="avatar product">' + productAvatarHtml(p.ten) + '</div>' +
           '<div class="product-info">' +
             '<div class="name">' + p.ten + '</div>' +
             '<small class="subtitle">' + p.maSp + ' — ' + p.chiTietList.length + ' chi tiết</small>' +
