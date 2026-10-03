@@ -342,7 +342,7 @@
   <header>
     <div>
       <div class="label">LTF IIoTs</div>
-      <h1>Quy trình công nghệ</h1>
+      <h1>Bảng điều khiển sản xuất</h1>
       <div id="clock"></div>
     </div>
     <div id="refresh-pill" class="machine-status-badge online">
@@ -363,10 +363,6 @@
     <div class="kpi-tile">
       <div class="kpi-label">Máy hoạt động</div>
       <div id="kpi-may" class="kpi-value">0/0</div>
-    </div>
-    <div class="kpi-tile">
-      <div class="kpi-label">Điểm nghẽn hiện tại</div>
-      <div id="kpi-nutthat" class="kpi-value text">—</div>
     </div>
   </div>
 
@@ -593,7 +589,6 @@ function buildStats() {
   let tongSX = 0;
   let soCongDoanCoMay = 0;
   let soCongDoanOnline = 0;
-  const allChiTiet = [];
 
   Object.entries(theoSanPham).forEach(([maSp, sp]) => {
     const chiTietList = Object.values(sp.chiTietMap).map(ct => {
@@ -609,31 +604,18 @@ function buildStats() {
     });
 
     const sxSanPham = chiTietList.length ? Math.min(...chiTietList.map(ct => ct.sxCuoi)) : 0;
-    const nutThat = chiTietList.find(ct => ct.sxCuoi === sxSanPham) || null;
     tongSX += sxSanPham;
-    chiTietList.forEach(ct => allChiTiet.push({ ten: ct.ten, maSp, sx: ct.sxCuoi }));
 
-    products.push({
-      maSp,
-      ten: sp.ten,
-      sx: sxSanPham,
-      chiTietList,
-      nutThatTen: nutThat ? nutThat.ten : null
-    });
+    products.push({ maSp, ten: sp.ten, sx: sxSanPham, chiTietList });
   });
 
-  const bottleneck = allChiTiet.length
-    ? allChiTiet.reduce((min, c) => (c.sx < min.sx ? c : min), allChiTiet[0])
-    : null;
-
-  return { products, tongSX, soCongDoanCoMay, soCongDoanOnline, bottleneck };
+  return { products, tongSX, soCongDoanCoMay, soCongDoanOnline };
 }
 
 // === DAI KPI ===
 function renderKPI(stats) {
   setKpiText('kpi-tongsx', fmt(stats.tongSX));
   setKpiText('kpi-congdoan', `${stats.soCongDoanOnline}/${stats.soCongDoanCoMay}`);
-  setKpiText('kpi-nutthat', stats.bottleneck ? stats.bottleneck.ten : '—');
 }
 
 // === BIEU DO (Chart.js) — chi dung du lieu da tinh san, khong goi them API ===
@@ -725,8 +707,7 @@ function stepRowHtml(info) {
   );
 }
 
-function chiTietHtml(ct, laNutThat) {
-  const badge = laNutThat ? '<span class="badge">Điểm nghẽn</span>' : '';
+function chiTietHtml(ct) {
   const congDoanInfo = ct.congDoanInfo;
   const cuoi = congDoanInfo[congDoanInfo.length - 1];
 
@@ -734,7 +715,7 @@ function chiTietHtml(ct, laNutThat) {
     '<details open>' +
       '<summary>' +
         '<div class="ct-left">' +
-          '<div class="name">' + ct.ten + badge + '</div>' +
+          '<div class="name">' + ct.ten + '</div>' +
           '<small class="subtitle">' + congDoanInfo.length + ' công đoạn</small>' +
         '</div>' +
         '<div class="ct-metrics">' +
@@ -774,7 +755,7 @@ function renderTree(stats) {
         '<div class="metric"><div class="k">Còn lại</div><div class="v">' + fmt(p.sx) + '</div></div>' +
       '</div>' +
       '<div class="child-list">' +
-        p.chiTietList.map(ct => chiTietHtml(ct, ct.ten === p.nutThatTen)).join('') +
+        p.chiTietList.map(ct => chiTietHtml(ct)).join('') +
       '</div>' +
     '</details>'
   )).join('');
