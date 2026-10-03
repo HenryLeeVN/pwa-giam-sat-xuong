@@ -109,7 +109,9 @@
     cursor:pointer; border:none; background:none; width:100%; text-align:left;
   }
   .drawer-item:active, .drawer-item.active{background:var(--accent-bg); color:var(--accent);}
-  .drawer-item .ic{width:20px;text-align:center;flex:0 0 auto;font-size:15px;}
+  .drawer-item .ic{width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;color:var(--text-secondary);}
+  .drawer-item.active .ic{color:var(--accent);}
+  .menu-btn svg, .drawer-close svg{display:block;}
   .drawer-item .soon{margin-left:auto;font-size:10px;color:var(--text-muted);background:var(--surface-2);border:1px solid var(--border);padding:2px 6px;border-radius:5px;flex:0 0 auto;}
   .drawer-item[disabled]{color:var(--text-muted);cursor:default;}
   .drawer-item[disabled]:active{background:none;}
@@ -421,23 +423,26 @@
       <div class="org">Lê Trần Furniture</div>
       <div class="org-sub">LTF IIoTs</div>
     </div>
-    <button class="drawer-close" onclick="toggleDrawer(false)" aria-label="Đóng menu">✕</button>
+    <button class="drawer-close" onclick="toggleDrawer(false)" aria-label="Đóng menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg></button>
   </div>
   <nav class="drawer-group">
-    <div class="drawer-group-label">Xem</div>
-    <button class="drawer-item active" data-tab="live" onclick="switchTab('live'); toggleDrawer(false);"><span class="ic">📊</span>Trực tiếp</button>
-    <button class="drawer-item" data-tab="history" onclick="switchTab('history'); toggleDrawer(false);"><span class="ic">🕘</span>Lịch sử theo máy</button>
+    <div class="drawer-group-label">Báo cáo tổng quan</div>
+    <button class="drawer-item active" data-tab="live" onclick="switchTab('live'); toggleDrawer(false);"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="20" x2="4" y2="12"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="20" y1="20" x2="20" y2="9"/><line x1="2" y1="20" x2="22" y2="20"/></svg></span>Tổng quan sản xuất</button>
+  </nav>
+  <nav class="drawer-group">
+    <div class="drawer-group-label">Báo cáo chi tiết</div>
+    <button class="drawer-item" data-tab="history" onclick="switchTab('history'); toggleDrawer(false);"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 16 14"/></svg></span>Chi tiết theo máy</button>
   </nav>
   <nav class="drawer-group">
     <div class="drawer-group-label">Quản lý</div>
-    <button class="drawer-item" disabled><span class="ic">⚙️</span>Cấu hình máy<span class="soon">Sắp có</span></button>
-    <button class="drawer-item" disabled><span class="ic">✏️</span>Hiệu chỉnh sản lượng<span class="soon">Sắp có</span></button>
-    <button class="drawer-item" disabled><span class="ic">👷</span>Thẻ công nhân<span class="soon">Sắp có</span></button>
+    <button class="drawer-item" disabled><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><circle cx="9" cy="6" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="12" x2="20" y2="12"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="11" cy="18" r="2" fill="currentColor" stroke="none"/></svg></span>Cấu hình máy<span class="soon">Sắp có</span></button>
+    <button class="drawer-item" disabled><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>Hiệu chỉnh sản lượng<span class="soon">Sắp có</span></button>
+    <button class="drawer-item" disabled><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="12" cy="10" r="2.2"/><path d="M8 17c0-2.2 1.8-3.5 4-3.5s4 1.3 4 3.5"/></svg></span>Thẻ công nhân<span class="soon">Sắp có</span></button>
   </nav>
   <nav class="drawer-group">
     <div class="drawer-group-label">Mở rộng</div>
-    <button class="drawer-item" disabled><span class="ic">⚡</span>Đo năng lượng<span class="soon">Sắp có</span></button>
-    <button class="drawer-item" disabled><span class="ic">🚨</span>Cảnh báo lỗi PLC<span class="soon">Sắp có</span></button>
+    <button class="drawer-item" disabled><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M13 2 3 14h7l-1 8 11-14h-8l1-6z"/></svg></span>Đo năng lượng<span class="soon">Sắp có</span></button>
+    <button class="drawer-item" disabled><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 2 20h20L12 3Z"/><line x1="12" y1="10" x2="12" y2="14"/><line x1="12" y1="17" x2="12" y2="17.01"/></svg></span>Cảnh báo lỗi PLC<span class="soon">Sắp có</span></button>
   </nav>
 </aside>
 
@@ -446,7 +451,7 @@
 
   <header>
     <div class="header-left">
-      <button class="menu-btn" onclick="toggleDrawer(true)" aria-label="Mở menu">☰</button>
+      <button class="menu-btn" onclick="toggleDrawer(true)" aria-label="Mở menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg></button>
       <img class="header-logo" src="./icon-192.png" alt="Lê Trần Furniture">
       <div>
         <div class="label">LTF IIoTs</div>
@@ -485,12 +490,12 @@
       <div class="chart-body"><canvas id="chart-by-stage"></canvas></div>
     </div>
     <div class="chart-card placeholder">
-      <div class="ph-icon">⏱</div>
+      <div class="ph-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><line x1="12" y1="13" x2="12" y2="9"/><line x1="9" y1="2" x2="15" y2="2"/><line x1="12" y1="2" x2="12" y2="5"/></svg></div>
       <div class="chart-title">Xu hướng sản lượng theo giờ</div>
       <div class="ph-note">Chưa có dữ liệu — cần gộp lịch sử theo thời gian, sẽ bổ sung sau</div>
     </div>
     <div class="chart-card placeholder">
-      <div class="ph-icon">🎯</div>
+      <div class="ph-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></svg></div>
       <div class="chart-title">Hiệu suất so với định mức</div>
       <div class="ph-note">Chưa có dữ liệu — cần theo dõi thời lượng ca sản xuất, sẽ bổ sung sau</div>
     </div>
